@@ -268,7 +268,7 @@ Here is the step by step guide link to install NVM.
 
 **I'm providing the steps below for reference**:
 
-Run the command below that downloads a script and runs it. The script clones the nvm repository to ~/.nvm, and attempts to add the NVM global variables to the correct profile file (~/.bash_profile, ~/.zshrc, ~/.profile, or ~/.bashrc).
+Run the command below that downloads a script and runs it. The script clones the nvm repository to `~/.nvm`, and attempts to add the NVM global variables to the correct profile file (`~/.bash_profile`, `~/.zshrc`, `~/.profile`, or `~/.bashrc`).
 
 ```bash
 wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
@@ -402,12 +402,37 @@ Let's make some server configuration
 
 ### Enable Permission
 
+Instead of using `chmod 777`, which is insecure, we'll set more appropriate permissions
+
+Set the owner of the directory to your user and the web server group (usually www-data):
+
 ```bash
 sudo chown -R $USER:www-data /var/www/
 ```
 
+Set directory permissions to 755 (drwxr-xr-x):
+
 ```bash
-sudo chmod -R 777 /var/www/
+sudo chmod -R 755 /var/www/
+```
+
+Set file permissions to 644 (-rw-r--r--):
+
+```bash
+sudo chmod -R 644 /var/www/index.html
+```
+
+If your application needs to write to specific directories, you can set them to 775
+For example:
+
+```bash
+sudo chmod 775 /var/www/w3public/uploads
+```
+
+Make sure Nginx can read the files:
+
+```bash
+sudo usermod -a -G www-data $USER
 ```
 
 ### Adding Domain
@@ -756,50 +781,52 @@ Continuous Deployment (CD) automates the process of deploying your application t
 
    ```yaml
    name: Deploy to VPS
-   
+
    on:
      push:
-       branches: [ main ]
-   
+       branches: [main]
+
    jobs:
      deploy:
        runs-on: ubuntu-latest
        steps:
-       - uses: actions/checkout@v2
-       
-       - name: Install Node.js
-         uses: actions/setup-node@v2
-         with:
-           node-version: '14'
-           
-       - name: Install dependencies
-         run: npm ci
-         
-       - name: Build application
-         run: npm run build
-         
-       - name: Deploy to VPS
-         uses: appleboy/ssh-action@master
-         with:
-           host: ${{ secrets.HOST }}
-           username: ${{ secrets.USERNAME }}
-           key: ${{ secrets.SSH_PRIVATE_KEY }}
-           script: |
-             cd /path/to/your/app
-             git pull origin main
-             npm ci
-             npm run build
-             pm2 restart all
+         - uses: actions/checkout@v2
+
+         - name: Install Node.js
+           uses: actions/setup-node@v2
+           with:
+             node-version: "14"
+
+         - name: Install dependencies
+           run: npm ci
+
+         - name: Build application
+           run: npm run build
+
+         - name: Deploy to VPS
+           uses: appleboy/ssh-action@master
+           with:
+             host: ${{ secrets.HOST }}
+             username: ${{ secrets.USERNAME }}
+             key: ${{ secrets.SSH_PRIVATE_KEY }}
+             script: |
+               cd /path/to/your/app
+               git pull origin main
+               npm ci
+               npm run build
+               pm2 restart all
    ```
 
 2. **Set up GitHub Secrets**:
    In your GitHub repository, go to Settings > Secrets and add the following secrets:
+
    - `HOST`: Your VPS IP address
    - `USERNAME`: Your VPS username
    - `SSH_PRIVATE_KEY`: Your SSH private key
 
 3. **Configure your VPS**:
    Ensure your VPS is set up to accept deployments:
+
    - The repository is cloned on the VPS
    - PM2 is installed and configured
    - Proper permissions are set for the deployment user
@@ -949,4 +976,3 @@ When deploying MERN stack applications, you might encounter some common issues. 
 4. **SSL Certificate Problems**
    - Verify certificate renewal: `sudo certbot renew --dry-run`
    - Check SSL configuration in Nginx
-
