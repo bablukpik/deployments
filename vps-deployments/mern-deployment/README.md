@@ -10,21 +10,21 @@
 6. [Installing Node.js](#installing-nodejs)
 7. [React App Deployment](#react-app-deployment)
 8. [Adding Domain](#adding-domain)
-9. [Installing MongoDB](#installing-mongodb)
-10. [Managing Environment Variables](#managing-environment-variables)
-11. [Additional Security Measures](#additional-security-measures)
-12. [Backup Strategy](#backup-strategy)
-13. [Continuous Deployment](#continuous-deployment)
-14. [Monitoring and Logging](#monitoring-and-logging)
-15. [Scaling Your Application](#scaling-your-application)
-16. [Database Optimization](#database-optimization)
-17. [Containerization with Docker](#containerization-with-docker)
-18. [Troubleshooting Common Issues](#troubleshooting-common-issues)
-19. [Setting Up HTTPS with Let's Encrypt](#setting-up-https-with-lets-encrypt)
-20. [MERN Stack Security Best Practices](#mern-stack-security-best-practices)
-21. [Performance Optimization](#performance-optimization)
+9. [Setting Up HTTPS with Let's Encrypt](#setting-up-https-with-lets-encrypt)
+10. [Installing MongoDB](#installing-mongodb)
+11. [Managing Environment Variables](#managing-environment-variables)
+12. [Additional Security Measures](#additional-security-measures)
+13. [Backup Strategy](#backup-strategy)
+14. [Continuous Deployment](#continuous-deployment)
+15. [Monitoring and Logging](#monitoring-and-logging)
+16. [Scaling Your Application](#scaling-your-application)
+17. [Database Optimization](#database-optimization)
+18. [Containerization with Docker](#containerization-with-docker)
+19. [MERN Stack Security Best Practices](#mern-stack-security-best-practices)
+20. [Performance Optimization](#performance-optimization)
+21. [Troubleshooting Common Issues](#troubleshooting-common-issues)
 
-## Creating SSH Key
+## 1. Creating SSH Key
 
 ### For MAC OS / Linux / Windows 10 (with openssh)
 
@@ -65,14 +65,14 @@ The key's randomart image is:
 4. Enter a key passphrase and confirm.
 5. Save the private key.
 
-## Connection
+## 2. Connection
 
 After copying the SSH Key go the to hosting service provider dashboard and paste your key and save. After,
 
 ### For MAC OS / Linux
 
 ```bash
-ssh root@<server ip address>
+ssh username@<server ip address>
 ```
 
 ### For Windows
@@ -83,7 +83,7 @@ ssh root@<server ip address>
    Connection - SSH - Auth
 4. Browse the folders and choose your private key.
 
-## First Configuration
+## 3. First Configuration
 
 ### Deleting apache server
 
@@ -193,7 +193,7 @@ sudo vim /var/www/w3public/index.html
 sudo systemctl start nginx
 ```
 
-## Uploading Projects
+## 4. Uploading Projects
 
 ### Using Git
 
@@ -233,7 +233,7 @@ Or if your index.html file is in the root folder:
 scp index.html ubuntu@35.185.247.77:/var/www/w3public/frontend
 ```
 
-## Nginx Configuration for new Apps
+## 5. Nginx Configuration for new Apps
 
 ```bash
 sudo vim /etc/nginx/sites-available/w3public
@@ -250,9 +250,9 @@ location /api {
   }
 ```
 
-### If you check the location /api you are going to get "502" error which is good. Our configuration works. The only thing we need to is running our app
+If you check the location /api you are going to get "502" error which is good. Our configuration works. The only thing we need to is running our app.
 
-**Installing Node.js**
+## 6. Installing Node.js
 
 ```bash
 sudo apt install nodejs
@@ -302,7 +302,7 @@ npm install
 ```
 
 ```bash
-nano .env
+sudo vim .env
 ```
 
 ### Copy and paste your env file
@@ -349,14 +349,14 @@ If you want to restart the process or API you created, you can use the following
 pm2 restart api-prod
 ```
 
-## React App Deployment
+## 7. React App Deployment
 
 ```bash
 cd ../client
 ```
 
 ```bash
-nano .env
+sudo vim .env
 ```
 
 Paste your env file.
@@ -374,11 +374,11 @@ npm run build
 Right now, we should move this build file into the main web file
 
 ```bash
-rm -rf /var/www/w3public/*
+sudo rm -rf /var/www/w3public/*
 ```
 
 ```bash
-mkdir /var/www/w3public/client
+sudo mkdir /var/www/w3public/client
 ```
 
 ```bash
@@ -435,7 +435,7 @@ Make sure Nginx can read the files:
 sudo usermod -a -G www-data $USER
 ```
 
-### Adding Domain
+## 8. Adding Domain
 
 1 - Make sure that you created your A records on your domain provider website.
 
@@ -491,7 +491,7 @@ server {
 }
 ```
 
-### VHOST Examples
+### Some VHOST Examples
 
 There are two ways to create a vhost server block.
 
@@ -626,7 +626,7 @@ server {
 }
 ```
 
-## Setting Up HTTPS with Let's Encrypt
+## 9. Setting Up HTTPS with Let's Encrypt
 
 To get SSL Certificate using Certbot, [here is the step by step guide to get SSL certification for your domain](https://certbot.eff.org/instructions).
 
@@ -687,7 +687,7 @@ The command to renew certbot is installed in one of the following locations:
 7. **Confirm that Certbot worked**
    To confirm that your site is set up properly, visit https://example.com/ in your browser and look for the lock icon in the URL bar.
 
-## Installing MongoDB
+## 10. Installing MongoDB
 
 MongoDB is a crucial part of the MERN stack. Here's how to install it:
 
@@ -715,7 +715,7 @@ sudo systemctl start mongod
 sudo systemctl enable mongod
 ```
 
-## Managing Environment Variables
+## 11. Managing Environment Variables
 
 It's important to manage environment variables securely in production:
 
@@ -732,7 +732,7 @@ require("dotenv").config();
 
 Never commit your `.env` file to version control. Instead, provide a `.env.example` file with dummy values.
 
-## Additional Security Measures
+## 12. Additional Security Measures
 
 1. Disable root SSH access:
    Edit `/etc/ssh/sshd_config` and set `PermitRootLogin no`
@@ -752,7 +752,7 @@ Never commit your `.env` file to version control. Instead, provide a `.env.examp
    sudo systemctl start fail2ban
    ```
 
-## Backup Strategy
+## 13. Backup Strategy
 
 1. Database Backup:
    Set up a cron job to regularly backup your MongoDB database:
@@ -772,7 +772,7 @@ Never commit your `.env` file to version control. Instead, provide a `.env.examp
 
 These additions should provide a more comprehensive guide for deploying and maintaining a MERN stack application on a VPS.
 
-## Continuous Deployment
+## 14. Continuous Deployment
 
 Continuous Deployment (CD) automates the process of deploying your application to your VPS whenever changes are pushed to your main branch. Here's how to set it up using GitHub Actions:
 
@@ -838,7 +838,7 @@ Remember to adjust the deployment script according to your specific setup and re
 
 For more complex setups, consider using deployment tools like Ansible, Capistrano, or Docker with container orchestration platforms.
 
-## Monitoring and Logging
+## 15. Monitoring and Logging
 
 Proper monitoring and logging are crucial for maintaining your deployed application:
 
@@ -855,7 +855,7 @@ Proper monitoring and logging are crucial for maintaining your deployed applicat
 3. **Uptime Monitoring**
    - Use services like UptimeRobot or Pingdom to monitor your application's availability
 
-## Scaling Your Application
+## 16. Scaling Your Application
 
 As your application grows, you might need to scale:
 
@@ -872,7 +872,7 @@ As your application grows, you might need to scale:
 3. **Caching**
    - Implement Redis for caching frequently accessed data
 
-## Database Optimization
+## 17. Database Optimization
 
 Optimize your MongoDB for production:
 
@@ -892,7 +892,7 @@ Optimize your MongoDB for production:
    - Schedule regular backups
    - Perform periodic data cleanup and archiving
 
-## Containerization with Docker
+## 18. Containerization with Docker
 
 Consider using Docker for easier deployment and scaling:
 
@@ -910,7 +910,7 @@ Consider using Docker for easier deployment and scaling:
 
 Remember to keep your deployment guide updated as you make changes to your infrastructure or deployment process.
 
-## MERN Stack Security Best Practices
+## 19. MERN Stack Security Best Practices
 
 1. **Input Validation**: Use libraries like Joi or express-validator to validate user inputs.
 
@@ -928,7 +928,7 @@ Remember to keep your deployment guide updated as you make changes to your infra
 
 8. **Secure Headers**: Use Helmet.js to set secure HTTP headers.
 
-## Performance Optimization
+## 20. Performance Optimization
 
 1. **Server-Side Rendering (SSR)**: Consider using Next.js for SSR to improve initial load times.
 
@@ -952,7 +952,7 @@ Remember to keep your deployment guide updated as you make changes to your infra
 
 Remember to regularly profile your application's performance and make iterative improvements.
 
-## Troubleshooting Common Issues
+## 21. Troubleshooting Common Issues
 
 When deploying MERN stack applications, you might encounter some common issues. Here's how to address them:
 
