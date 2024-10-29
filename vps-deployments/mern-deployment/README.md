@@ -9,20 +9,21 @@
 5. [Nginx Configuration](#nginx-configuration-for-new-apps)
 6. [Installing Node.js](#installing-nodejs)
 7. [React App Deployment](#react-app-deployment)
-8. [Adding Domain](#adding-domain)
-9. [Setting Up HTTPS with Let's Encrypt](#setting-up-https-with-lets-encrypt)
-10. [Installing MongoDB](#installing-mongodb)
-11. [Managing Environment Variables](#managing-environment-variables)
-12. [Additional Security Measures](#additional-security-measures)
-13. [Backup Strategy](#backup-strategy)
-14. [Continuous Deployment](#continuous-deployment)
-15. [Monitoring and Logging](#monitoring-and-logging)
-16. [Scaling Your Application](#scaling-your-application)
-17. [Database Optimization](#database-optimization)
-18. [Containerization with Docker](#containerization-with-docker)
-19. [MERN Stack Security Best Practices](#mern-stack-security-best-practices)
-20. [Performance Optimization](#performance-optimization)
-21. [Troubleshooting Common Issues](#troubleshooting-common-issues)
+8. [Creating VHOST](#creating-vhost)
+9. [Adding Domain](#adding-domain)
+10. [Setting Up HTTPS with Let's Encrypt](#setting-up-https-with-lets-encrypt)
+11. [Installing MongoDB](#installing-mongodb)
+12. [Managing Environment Variables](#managing-environment-variables)
+13. [Additional Security Measures](#additional-security-measures)
+14. [Backup Strategy](#backup-strategy)
+15. [Continuous Deployment](#continuous-deployment)
+16. [Monitoring and Logging](#monitoring-and-logging)
+17. [Scaling Your Application](#scaling-your-application)
+18. [Database Optimization](#database-optimization)
+19. [Containerization with Docker](#containerization-with-docker)
+20. [MERN Stack Security Best Practices](#mern-stack-security-best-practices)
+21. [Performance Optimization](#performance-optimization)
+22. [Troubleshooting Common Issues](#troubleshooting-common-issues)
 
 ## Creating SSH Key
 
@@ -435,6 +436,171 @@ Make sure Nginx can read the files:
 sudo usermod -a -G www-data $USER
 ```
 
+### Creating VHOST
+
+A Virtual Host (VHost) is a method used by web servers, like Apache or Nginx, to host multiple websites or applications on a single server. Virtual hosting allows the server to differentiate between multiple domain names and serve the appropriate website content for each domain. This setup is particularly useful when you want to host multiple websites on the same server or IP address, as each VHost can be configured to serve different content based on the requested domain or subdomain.
+
+### Types of Virtual Hosts
+
+1. **Name-Based Virtual Hosts**:
+
+   - Allows multiple domains to share the same IP address.
+   - The web server uses the requested domain name in the HTTP header to determine which site to display.
+   - Example: Serving `example.com` and `example.org` from the same server IP.
+
+2. **IP-Based Virtual Hosts**:
+
+   - Assigns a unique IP address to each website on the server.
+   - This is less common today but may be used when SSL/TLS certificates require dedicated IPs (though Server Name Indication (SNI) has largely replaced this need).
+
+3. **Port-Based Virtual Hosts**:
+   - Uses different ports for different websites or applications on the same server.
+   - Often used when hosting multiple applications that don’t need a unique domain.
+
+### Creating Server Blocks for Virtual Hosts in Nginx
+
+There are two common ways to create an Nginx server block for multiple applications or locations within a single domain.
+
+#### One Server Block for Different Locations (Method 1)
+
+This method uses a single server block and separate `location` directives to route requests to different applications or directories based on the URL path.
+
+```nginx
+server {
+  listen 80;
+  server_name opencv.w3public.com;
+
+  location / {
+    root /var/www/dsd-sji/frontend;
+    index index.html index.htm;
+    try_files $uri $uri/ /index.html;
+
+    # WebSocket proxy configurations
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+  }
+
+  location /api {
+    proxy_pass http://localhost:8000;
+
+    # WebSocket proxy configurations
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+
+    # Timeout settings to prevent long-running requests from being dropped
+    proxy_connect_timeout   20s;
+    proxy_send_timeout      20s;
+    proxy_read_timeout      20s;
+    send_timeout            20s;
+  }
+}
+```
+
+#### Separate Server Blocks for Each Location (Method 2)
+
+In this method, each application or service gets its own server block. This approach is helpful for isolating configurations and providing flexibility in case you need distinct domains or subdomains.
+
+```nginx
+server {
+  listen 80;
+  server_name example.com www.example.com;
+
+  location / {
+    root /var/www/w3public/client;
+    index index.html index.htm;
+    try_files $uri $uri/ /index.html;
+
+    # WebSocket proxy configurations
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+  }
+}
+
+server {
+  listen 80;
+  server_name api.example.com;
+  location / {
+    proxy_pass http://localhost:3000;
+
+    # WebSocket proxy configurations
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+  }
+}
+
+server {
+  listen 80;
+  server_name admin.example.com;
+  location / {
+    root /var/www/w3public/admin;
+    index index.html index.htm;
+    try_files $uri $uri/ /index.html;
+
+    # WebSocket proxy configurations
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+  }
+}
+```
+
+#### Using the Server’s IP Address Instead of a Domain (Alternative Approach)
+
+If you don’t have a domain name, you can configure the server block with your VPS IP address. In this case, a single server block can serve all locations within the application:
+
+```nginx
+server {
+  listen 80;
+
+  location / {
+    root /var/www/w3public/frontend;
+    index  index.html index.htm;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+    try_files $uri $uri/ /index.html;
+  }
+
+  location /api {
+    proxy_pass http://localhost:8000;
+
+    # Set the maximum allowed size of the client request body to 100MB
+    client_max_body_size 100M;
+
+    # WebSocket proxy configurations
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+
+    # Timeout settings for long-running requests
+    proxy_connect_timeout   120s;
+    proxy_send_timeout      120s;
+    proxy_read_timeout      120s;
+    send_timeout            120s;
+  }
+}
+```
+
+**Note**: The `client_max_body_size` directive in the `/api` location block limits the maximum allowed size of the client request body, which can be useful if the API expects large file uploads. Adjust this size as needed based on your requirements.
+
 ## Adding Domain
 
 1 - Make sure that you created your A records on your domain provider website.
@@ -487,141 +653,6 @@ server {
     proxy_set_header Host $host;
     proxy_cache_bypass $http_upgrade;
     try_files $uri $uri/ /index.html;
-  }
-}
-```
-
-### Some VHOST Examples
-
-There are two ways to create a vhost server block.
-
-#### One Server Block for Different Locations (One way)
-
-````bash
-server {
-  listen 80;
-  server_name opencv.w3public.com;
-
-  location / {
-    root /var/www/dsd-sji/frontend;
-    index index.html index.htm;
-    try_files $uri $uri/ /index.html;
-
-    # WebSocket proxy configurations
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection 'upgrade';
-    proxy_set_header Host $host;
-    proxy_cache_bypass $http_upgrade;
-  }
-
-  location /api {
-    proxy_pass http://localhost:8000;
-
-    # WebSocket proxy configurations
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection 'upgrade';
-    proxy_set_header Host $host;
-    proxy_cache_bypass $http_upgrade;
-
-    # Timeout settings
-    proxy_connect_timeout   20s;
-    proxy_send_timeout      20s;
-    proxy_read_timeout      20s;
-    send_timeout            20s;
-  }
-}
-
-#### Different server blocks for each location (Another way)
-
-```bash
-server {
-  listen 80;
-  server_name example.com www.example.com;
-
-  location / {
-    root /var/www/w3public/client;
-    index index.html index.htm;
-    try_files $uri $uri/ /index.html;
-
-    # WebSocket proxy configurations
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection 'upgrade';
-    proxy_set_header Host $host;
-    proxy_cache_bypass $http_upgrade;
-  }
-}
-
-server {
-  listen 80;
-  server_name api.example.com;
-  location / {
-    proxy_pass http://198.12.124.82:3000;
-
-    # WebSocket proxy configurations
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection 'upgrade';
-    proxy_set_header Host $host;
-    proxy_cache_bypass $http_upgrade;
-  }
-}
-
-server {
-  listen 80;
-  server_name admin.example.com;
-  location / {
-    root /var/www/w3public/admin;
-    index index.html index.htm;
-    try_files $uri $uri/ /index.html;
-
-    # WebSocket proxy configurations
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection 'upgrade';
-    proxy_set_header Host $host;
-    proxy_cache_bypass $http_upgrade;
-  }
-}
-````
-
-**Note**: If you don't have a domain, you can use the IP address of your VPS server, in this case, you have to use a single server block for all the locations:
-
-```bash
-server {
-  listen 80;
-
-  location / {
-    root /var/www/w3public/frontend;
-    index  index.html index.htm;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection 'upgrade';
-    proxy_set_header Host $host;
-    proxy_cache_bypass $http_upgrade;
-    try_files $uri $uri/ /index.html;
-  }
-
-  location /api {
-    proxy_pass http://localhost:8000;
-
-    # Set the maximum allowed size of the client request body to 100MB
-    client_max_body_size 100M;
-
-    # WebSocket proxy configurations
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection 'upgrade';
-    proxy_set_header Host $host;
-    proxy_cache_bypass $http_upgrade;
-
-    # Timeout settings
-    proxy_connect_timeout   120s;
-    proxy_send_timeout      120s;
-    proxy_read_timeout      120s;
-    send_timeout            120s;
   }
 }
 ```
