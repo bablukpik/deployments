@@ -126,41 +126,43 @@ sudo apt install nginx
 
 ### Installing and configure Firewall
 
+**Install UFW**:
+
 ```bash
 sudo apt install ufw
 ```
 
-**Allow SSH**
+**Allow SSH**:
 
 ```bash
 sudo ufw allow ssh
 ```
 
-**Allow Nginx Full**
+**Allow Nginx Full**:
 
 ```bash
 sudo ufw allow 'Nginx Full'
 ```
 
-**Allow HTTP**
+**Allow HTTP**:
 
 ```bash
 sudo ufw allow 80/tcp
 ```
 
-**Allow HTTPS**
+**Allow HTTPS**:
 
 ```bash
 sudo ufw allow 443/tcp
 ```
 
-**Check status if the above rules are added**
+**Check status if the above rules are added**:
 
 ```bash
 sudo ufw status
 ```
 
-**Enable Firewall**
+**Enable Firewall**:
 
 ```bash
 sudo ufw enable
@@ -189,7 +191,7 @@ server {
   listen 80;
 
   location / {
-        root /var/www/w3public;
+        root /var/www/w3public/frontend;
         index  index.html index.htm;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -231,11 +233,11 @@ sudo apt install git
 ```
 
 ```
-sudo mkdir w3public
+sudo mkdir -p /var/www/w3public/frontend
 ```
 
 ```bash
-cd w3public
+cd /var/www/w3public/frontend
 ```
 
 ```
@@ -262,7 +264,7 @@ Or if your index.html file is in the root folder:
 scp index.html ubuntu@35.185.247.77:/var/www/w3public/frontend
 ```
 
-## Nginx Configuration for new Apps
+## Nginx Configuration for Backend
 
 ```bash
 sudo vim /etc/nginx/sites-available/w3public
@@ -303,38 +305,70 @@ Run the command below that downloads a script and runs it. The script clones the
 wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 ```
 
-Check if NVM is installed
+Check if NVM is installed:
 
 ```bash
 nvm --version
 ```
 
-If it doesn't show the version number, you can add the following line to the end of your ~/.bashrc file:
+If it doesn't show the version number, you can run the following command to add the lines to the end of your `~/.bashrc` file:
 
 ```bash
 export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 ```
 
-And then run the following command to reload the bash profile:
+If you added the lines manually to the `~/.bashrc` file, source the bash profile to reload the changes:
 
 ```bash
 source ~/.bashrc
 ```
 
+Now check the nvm version again:
+
 ```bash
-cd api
+nvm --version
 ```
+
+Now install Node.js using nvm:
+
+```bash
+nvm install 20.18.0
+```
+
+Use the installed Node.js version:
+
+```bash
+nvm use 20.18.0
+```
+
+Check the Node.js version:
+
+```bash
+node --version
+```
+
+### Run your backend server
+
+Navigate to your backend directory:
+
+```bash
+cd /var/www/w3public/backend
+```
+
+Install dependencies:
 
 ```bash
 npm install
 ```
 
+Create a `.env` file:
+
 ```bash
 sudo vim .env
 ```
 
-### Copy and paste your env file
+Run your server:
 
 ```bash
 node index.js
@@ -414,7 +448,7 @@ sudo mkdir /var/www/w3public/client
 cp -r build/* /var/www/w3public/client
 ```
 
-Let's make some server configuration
+Let's configure NGINX by adding the following location block to your server configuration:
 
 ```bash
  location / {
@@ -461,7 +495,7 @@ sudo chmod 775 /var/www/w3public/uploads
 Make sure Nginx can read the files:
 
 ```bash
-sudo usermod -a -G www-data $USER
+sudo usermod -aG www-data $USER
 ```
 
 ### Creating VHOST
