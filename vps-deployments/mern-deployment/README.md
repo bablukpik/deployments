@@ -111,7 +111,7 @@ sudo apt autoremove
 ### Cleaning and updating server
 
 ```bash
-sudo apt clean all && sudo apt update && sudo apt dist-upgrade
+sudo apt clean all && sudo apt update && sudo apt dist-upgrade -y
 ```
 
 ```bash
@@ -121,7 +121,7 @@ sudo rm -rf /var/www/html
 ### Installing Nginx
 
 ```bash
-sudo apt install nginx
+sudo apt install nginx -y
 ```
 
 ### Installing and configure Firewall
@@ -129,7 +129,7 @@ sudo apt install nginx
 **Install UFW**:
 
 ```bash
-sudo apt install ufw
+sudo apt install ufw -y
 ```
 
 **Allow SSH**:
@@ -189,6 +189,7 @@ sudo vim /etc/nginx/sites-available/w3public
 ```bash
 server {
   listen 80;
+  #server_name w3public.com; # Uncomment this line if you want to use a specific domain
 
   location / {
         root /var/www/w3public/frontend;
@@ -215,7 +216,7 @@ sudo systemctl restart nginx
 ### Write your fist message
 
 ```bash
-sudo vim /var/www/w3public/index.html
+sudo vim /var/www/w3public/frontend/index.html
 ```
 
 ### Start Nginx and check the page
@@ -244,7 +245,7 @@ cd /var/www/w3public/frontend
 git clone <your repository>
 ```
 
-### Using scp
+### Using the scp Shell Command
 
 Copy all files and folders from the **dist** folder to VPS:
 
