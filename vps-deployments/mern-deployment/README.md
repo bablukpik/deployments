@@ -130,9 +130,37 @@ sudo apt install nginx
 sudo apt install ufw
 ```
 
+**Allow SSH**
+
 ```bash
-sudo ufw allow 'Nginx Full' && sudo ufw allow ssh
+sudo ufw allow ssh
 ```
+
+**Allow Nginx Full**
+
+```bash
+sudo ufw allow 'Nginx Full'
+```
+
+**Allow HTTP**
+
+```bash
+sudo ufw allow 80/tcp
+```
+
+**Allow HTTPS**
+
+```bash
+sudo ufw allow 443/tcp
+```
+
+**Check status if the above rules are added**
+
+```bash
+sudo ufw status
+```
+
+**Enable Firewall**
 
 ```bash
 sudo ufw enable
